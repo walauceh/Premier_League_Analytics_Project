@@ -80,12 +80,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Title
-st.markdown('<div class="main-header">⚽ Premier League Analytics</div>', unsafe_allow_html=True)
-st.markdown(f"### Tactical & Scouting Decision Support System")
-if data:
-    st.markdown(f"**Current Season Focus: {data.get('season_focus', 'N/A')}**")
-
 # Sidebar navigation
 st.sidebar.title("📊 Navigation")
 page = st.sidebar.radio(
@@ -104,17 +98,17 @@ page = st.sidebar.radio(
 # Data loading with caching
 @st.cache_data
 def load_data():
-    """Load all datasets for 2024/25 season."""
+    """Load all datasets for 2023/24 season."""
     try:
-        # Try to load 2024 season data first
+        # Try to load 2023 season data first
         try:
-            team_data = pd.read_csv("data/team_features_2024.csv")
-            player_data = pd.read_csv("data/player_features_2024.csv")
-            team_styles = pd.read_csv("data/team_tactical_styles_2024.csv")
-            player_profiles = pd.read_csv("data/player_profiles_enhanced_2024.csv")
-            season_focus = "2024/25"
+            team_data = pd.read_csv("data/team_features_2023.csv")
+            player_data = pd.read_csv("data/player_features_2023.csv")
+            team_styles = pd.read_csv("data/team_tactical_styles_2023.csv")
+            player_profiles = pd.read_csv("data/player_profiles_enhanced_2023.csv")
+            season_focus = "2023/24"
         except FileNotFoundError:
-            # Fallback to complete data if 2024 files not yet generated
+            # Fallback to complete data if 2023 files not yet generated
             team_data = pd.read_csv("data/team_features_complete.csv")
             player_data = pd.read_csv("data/player_features_complete.csv")
             team_styles = pd.read_csv("data/team_tactical_styles.csv")
@@ -127,6 +121,48 @@ def load_data():
         
         team_data['date'] = pd.to_datetime(team_data['date'])
         player_data['date'] = pd.to_datetime(player_data['date'])
+        
+        # Fix HTML entities in player names
+        import html
+        player_profiles['player_name'] = player_profiles['player_name'].apply(lambda x: html.unescape(str(x)))
+        player_data['player_name'] = player_data['player_name'].apply(lambda x: html.unescape(str(x)))
+        
+        # Calculate defensive metrics for goalkeepers and defenders
+        try:
+            import sys
+            from pathlib import Path
+            sys.path.append(str(Path(__file__).parent / 'src'))
+            from defensive_stats import DefensiveStatsCalculator
+            
+            calc = DefensiveStatsCalculator(team_data, player_data)
+            
+            # Add defensive metrics to player profiles
+            for idx, row in player_profiles.iterrows():
+                pos_group = row.get('position_group', '')
+                player_name = row['player_name']
+                
+                if pos_group == 'Goalkeeper':
+                    stats = calc.calculate_goalkeeper_stats(player_name, season=row.get('season'))
+                    if 'error' not in stats:
+                        player_profiles.at[idx, 'save_percentage'] = stats.get('save_percentage', 0)
+                        player_profiles.at[idx, 'goals_prevented_per90'] = stats.get('goals_prevented_per90', 0)
+                        player_profiles.at[idx, 'clean_sheet_rate'] = stats.get('clean_sheet_rate', 0)
+                        player_profiles.at[idx, 'goals_conceded_per90'] = stats.get('goals_conceded_per90', 0)
+                        player_profiles.at[idx, 'xGA_per90'] = stats.get('xGA_per90', 0)
+                        
+                elif pos_group in ['Defender', 'Midfielder']:
+                    # Calculate defensive stats for defenders and midfielders
+                    stats = calc.calculate_defender_stats(player_name, season=row.get('season'))
+                    if 'error' not in stats:
+                        player_profiles.at[idx, 'clean_sheet_rate'] = stats.get('clean_sheet_rate', 0)
+                        player_profiles.at[idx, 'goals_conceded_per90'] = stats.get('goals_conceded_per90', 0)
+                        player_profiles.at[idx, 'xGA_per90'] = stats.get('xGA_per90', 0)
+                        player_profiles.at[idx, 'defensive_performance_per90'] = stats.get('defensive_performance_per90', 0)
+                        player_profiles.at[idx, 'ppda_allowed'] = stats.get('ppda_allowed', 0)
+            
+            print("✓ Defensive metrics calculated and added to player profiles")
+        except Exception as e:
+            print(f"Warning: Could not calculate defensive metrics: {e}")
         
         return {
             'team_data': team_data,
@@ -145,6 +181,11 @@ data = load_data()
 if data is None:
     st.error("Failed to load data. Please ensure all data files are present in the 'data' directory.")
     st.stop()
+
+# Title (after data is loaded)
+st.markdown('<div class="main-header">⚽ Premier League Analytics</div>', unsafe_allow_html=True)
+st.markdown(f"### Tactical & Scouting Decision Support System")
+st.markdown(f"**Current Season Focus: {data.get('season_focus', 'N/A')}**")
 
 # Home Page
 if page == "🏠 Home":
@@ -248,6 +289,6 @@ st.markdown("---")
 st.markdown("""
 <div style='text-align: center; opacity: 0.6; padding: 2rem 0;'>
     <p>Premier League Analytics Dashboard | Built with Streamlit</p>
-    <p style='font-size: 0.8rem;'>Data from Understat & FBref (2024/25 Season)</p>
+    <p style='font-size: 0.8rem;'>Data from Understat (2023/24 Season)</p>
 </div>
 """, unsafe_allow_html=True)

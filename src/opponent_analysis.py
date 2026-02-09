@@ -66,7 +66,7 @@ class OpponentAnalyzer:
                 'goals_per_game': float(opponent_data['goals_for'].mean()),
                 'xG_per_game': float(opponent_data['xG'].mean()),
                 'shots_per_game': float(opponent_data['shots'].mean()),
-                'shot_accuracy': float(opponent_data['shot_accuracy'].mean()),
+                'shot_accuracy': float((opponent_data['shots_on_target'] / opponent_data['shots']).mean()) if 'shots_on_target' in opponent_data.columns and (opponent_data['shots'] > 0).any() else 0.0,
                 'shot_quality': float(opponent_data['shot_quality'].mean()),
                 'goals_vs_xG': float((opponent_data['goals_for'] - opponent_data['xG']).mean()),
             },

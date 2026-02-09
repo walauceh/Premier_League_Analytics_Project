@@ -35,13 +35,9 @@ env/
 .vscode/
 
 # Data files
-# Exclude generated/processed data but keep source files
+# Exclude generated/processed data directory but keep source files
 data/
 !data/.gitkeep
-
-# Source data files (keep these for reproducibility)
-!understat_matches_roster.csv
-!understat_matches_team.csv
 
 # Documentation (exclude redundant/generated docs, keep README and project summary)
 IMPROVEMENTS.md
