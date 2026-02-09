@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+*.ipynb_checkpoints/
+
+# VS Code
+.vscode/
+
+# Data files
+# Exclude generated/processed data but keep source files
+data/
+!data/.gitkeep
+
+# Source data files (keep these for reproducibility)
+!understat_matches_roster.csv
+!understat_matches_team.csv
+
+# Documentation (exclude redundant/generated docs, keep README and project summary)
+IMPROVEMENTS.md
+NOTEBOOKS.md
+PROJECT_SUMMARY.md
+QUICK_REFERENCE.md
+SETUP_GUIDE.md
+Task_Checklist.md
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Test files
+test_*.py
+fix_*.py
+
+# Logs
+*.log
